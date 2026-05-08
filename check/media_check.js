@@ -1,7 +1,6 @@
 /*
- * 节点解锁查询 (精简修复版)
- * 检测项：YouTube / Netflix / Gemini / ChatGPT
- * 适配环境：Loon
+ * 节点解锁查询 (专项测试修复版)
+ * 适配：Loon 策略组节点列表点击测试
  */
 
 const NF_BASE_URL = "https://www.netflix.com/title/81280792";
@@ -11,12 +10,11 @@ const GEMINI_URL = 'https://aisandbox-pa.googleapis.com/v1:checkCapability';
 
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36';
 
-let nodeName = $environment.params ? $environment.params.node : "当前节点";
+// 关键点：Loon 手动测试节点时，必须显式指定选中的节点
+let testNode = $environment.params ? $environment.params.node : null;
 
-// 动态生成国旗 Emoji
 const getFlag = (code) => {
     if (!code || code.length !== 2) return "🚫";
-    if (code === "CN") return "🇨🇳";
     const codePoints = code.toUpperCase().split('').map(char => 127397 + char.charCodeAt());
     return String.fromCodePoint(...codePoints);
 };
@@ -28,8 +26,8 @@ let result = {
     "ChatGPT": "🚫"
 };
 
-// 预设节点地区（默认美国，若能检测到则覆盖）
-let nodeRegion = "US"; 
+// 增加随机数防止 URL 缓存
+const cacheBust = () => `?t=${Date.now()}`;
 
 Promise.all([ytbTest(), nfTest(), gptTest(), geminiTest()]).finally(() => {
     let content = `------------------------------------</br>` +
@@ -38,7 +36,7 @@ Promise.all([ytbTest(), nfTest(), gptTest(), geminiTest()]).finally(() => {
                   `<b>Gemini  ：</b>${result["Gemini"]}</br></br>` +
                   `<b>ChatGPT ：</b>${result["ChatGPT"]}</br>` +
                   `------------------------------------</br>` +
-                  `<font color=#CD5C5C><b>节点</b> ➟ ${nodeName}</font>`;
+                  `<font color=#CD5C5C><b>测试节点</b> ➟ ${testNode || "默认出口"}</font>`;
     
     const html = `<p style="text-align: center; font-family: -apple-system; font-size: large; font-weight: thin">${content}</p>`;
     $done({"title": "📺 节点解锁查询", "htmlMessage": html});
@@ -47,33 +45,28 @@ Promise.all([ytbTest(), nfTest(), gptTest(), geminiTest()]).finally(() => {
 // --- YouTube ---
 function ytbTest() {
     return new Promise((resolve) => {
-        $httpClient.get({ url: YTB_BASE_URL, headers: { "User-Agent": UA }, timeout: 5000 }, (err, resp, data) => {
+        // 使用 node 参数强制走被选中的测试节点
+        $httpClient.get({ url: YTB_BASE_URL + cacheBust(), node: testNode, headers: { "User-Agent": UA }, timeout: 5000 }, (err, resp, data) => {
             if (!err && resp.status === 200 && data.indexOf('Premium is not available in your country') === -1) {
                 let region = data.match(/"GL":"(.*?)"/)?.[1] || "US";
                 result["YouTube"] = getFlag(region);
-                nodeRegion = region; // 以 YTB 检测到的地区作为基准
             }
             resolve();
         });
     });
 }
 
-// --- Netflix (修复逻辑) ---
+// --- Netflix ---
 function nfTest() {
     return new Promise((resolve) => {
-        $httpClient.get({ url: NF_BASE_URL, headers: { "User-Agent": UA }, timeout: 5000 }, (err, resp) => {
-            if (!err) {
-                if (resp.status === 200) {
-                    // 修复：多重尝试获取地区代码，防止出现乱码字符
-                    let url = resp.headers['X-Originating-URL'] || resp.headers['x-originating-url'] || "";
-                    let regionMatch = url.match(/netflix\.com\/([a-z]{2})/i);
-                    let region = regionMatch ? regionMatch[1].toUpperCase() : "US";
-                    // 过滤掉 'TI' 等非地区标识符
-                    if (region.length !== 2 || region === "TI") region = nodeRegion; 
-                    result["Netflix"] = getFlag(region);
-                } else if (resp.status === 404) {
-                    result["Netflix"] = "⚠️"; // 仅支持自制剧
-                }
+        $httpClient.get({ url: NF_BASE_URL + cacheBust(), node: testNode, headers: { "User-Agent": UA }, timeout: 5000 }, (err, resp) => {
+            if (!err && resp.status === 200) {
+                let url = resp.headers['X-Originating-URL'] || resp.headers['x-originating-url'] || "";
+                let regionMatch = url.match(/netflix\.com\/([a-z]{2})/i);
+                let region = regionMatch ? regionMatch[1].toUpperCase() : "US";
+                result["Netflix"] = getFlag(region);
+            } else if (!err && resp.status === 404) {
+                result["Netflix"] = "⚠️";
             }
             resolve();
         });
@@ -83,7 +76,7 @@ function nfTest() {
 // --- ChatGPT ---
 function gptTest() {
     return new Promise((resolve) => {
-        $httpClient.get({ url: GPT_REGION_URL, timeout: 5000 }, (err, resp, data) => {
+        $httpClient.get({ url: GPT_REGION_URL + cacheBust(), node: testNode, timeout: 5000 }, (err, resp, data) => {
             if (!err && data) {
                 let region = data.match(/loc=(.*)/)?.[1];
                 if (region && region !== "CN") result["ChatGPT"] = getFlag(region);
@@ -93,13 +86,13 @@ function gptTest() {
     });
 }
 
-// --- Gemini (修复：返回国旗) ---
+// --- Gemini ---
 function geminiTest() {
     return new Promise((resolve) => {
-        $httpClient.get({ url: GEMINI_URL, headers: { "User-Agent": UA }, timeout: 5000 }, (err, resp) => {
+        // 注意：Gemini 通常与当前节点地区挂钩，我们通过 YTB 的结果来反推地区或显示成功图标
+        $httpClient.get({ url: GEMINI_URL, node: testNode, headers: { "User-Agent": UA }, timeout: 5000 }, (err, resp) => {
             if (!err && resp.status !== 403 && resp.status !== 400) {
-                // Gemini 支持时，显示当前节点的国旗
-                result["Gemini"] = getFlag(nodeRegion);
+                result["Gemini"] = "✅"; 
             }
             resolve();
         });
