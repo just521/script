@@ -1,12 +1,13 @@
 #!name=流媒体解锁检测
-#!desc=检测当前节点对 YouTube, Netflix, Disney+, ChatGPT 等流媒体的解锁情况。
+#!desc=点击“运行”或通过图标触发，检测当前节点对主流流媒体的解锁情况。
 #!author=XIAO_KOP & Gemini
 #!icon=https://raw.githubusercontent.com/KOP-XIAO/QuantumultX/master/img/southpark/7.png
 #!date=2026-05-08
 
 [Script]
-# 这里的 cron 表达式可以根据需要修改，或者通过 Loon 的插件面板手动点击运行
-generic script-path = https://raw.githubusercontent.com/just521/script/refs/heads/main/check/media_check.js, tag=流媒体检测
+# 关键：使用 generic 类型并确保路径可访问
+# 如果仍然 empty，请检查你的 raw 链接是否被网络环境拦截（建议本地化或使用镜像链接）
+generic script-path=https://raw.githubusercontent.com/just521/script/refs/heads/main/check/media_check.js, tag=流媒体检测, img-url=checkmark.seal.system, timeout=20
 
 [MITM]
-hostname = chat.openai.com, www.netflix.com, www.youtube.com
+hostname = chat.openai.com, www.netflix.com, www.youtube.com, *.disneyplus.com, *.bamgrid.com
