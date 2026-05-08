@@ -6,7 +6,7 @@
 
 [Script]
 # 这里的 cron 表达式可以根据需要修改，或者通过 Loon 的插件面板手动点击运行
-http-request ^https?:\/\/.*\/running_media_check script-path=https://raw.githubusercontent.com/your_path/media_check.js, tag=流媒体检测
+generic script-path = https://raw.githubusercontent.com/just521/script/refs/heads/main/check/media_check.js, tag=流媒体检测
 
 [MITM]
 hostname = chat.openai.com, www.netflix.com, www.youtube.com
