@@ -1,5 +1,5 @@
 #!name=流媒体解锁检测
-#!desc=点击“运行”或通过图标触发，检测当前节点对主流流媒体的解锁情况。
+#!desc=检测当前节点对主流流媒体的解锁情况。
 #!author=XIAO_KOP & Gemini
 #!icon=https://raw.githubusercontent.com/KOP-XIAO/QuantumultX/master/img/southpark/7.png
 #!date=2026-05-08
