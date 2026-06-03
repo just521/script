@@ -1,0 +1,59 @@
+{
+  "name": "IMDb-Trakt-TMDb-Douban-Enhanced-Icons",
+  "author": "MediaFlow_Expert",
+  "version": "2026.06.02",
+  "description": "适用于 Emby/Jellyfin 客户端及主流播放器皮肤的流媒体平台评分与类型标签高清图标替换订阅",
+  "config": {
+    "icon_size": "48x48",
+    "format": "png_transparent",
+    "cdn_provider": "jsDelivr"
+  },
+  "emby_elements": {
+    "ratings": [
+      {
+        "name": "IMDb",
+        "match_keywords": ["imdb", "Internet Movie Database", "tt"],
+        "icon": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/imdb.png",
+        "dark_icon": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/imdb.png",
+        "css_class": "rating-imdb-badge",
+        "color_theme": "#F5C518"
+      },
+      {
+        "name": "Trakt",
+        "match_keywords": ["trakt", "trakt.tv", "trakt_id"],
+        "icon": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/trakt.png",
+        "dark_icon": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/trakt.png",
+        "css_class": "rating-trakt-badge",
+        "color_theme": "#ED1C24"
+      },
+      {
+        "name": "TMDb",
+        "match_keywords": ["tmdb", "themoviedb", "tmdb_id"],
+        "icon": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/tmdb.png",
+        "dark_icon": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/tmdb.png",
+        "css_class": "rating-tmdb-badge",
+        "color_theme": "#01B4E4"
+      },
+      {
+        "name": "豆瓣",
+        "match_keywords": ["douban", "豆瓣电影", "douban_id"],
+        "icon": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/douban.png",
+        "dark_icon": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/douban.png",
+        "css_class": "rating-douban-badge",
+        "color_theme": "#00B514"
+      }
+    ],
+    "ui_categories": [
+      {
+        "name": "电影首页评分栏",
+        "target_selector": "div.mediaInfoItem.ratingValue",
+        "action": "prepend_icon",
+        "fallback_image": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/jellyfin.png"
+      }
+    ]
+  },
+  "external_mapping": {
+    "api_route_imdb": "https://api.themoviedb.org/3/find/{id}?external_source=imdb_id",
+    "api_route_douban": "https://api.wmdb.tv/movie/api1/?id="
+  }
+}
